@@ -77,7 +77,7 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
     }
 
     private String compareCode(String correctCode, String submittedCode) {
-        String apiKey = "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";
+        String apiKey = "placeholder";
         String apiUrl = "https://api.openai.com/v1/chat/completions";
 
         String prompt = "Compare the following code files and provide suggestions for improvement:\n\n";
