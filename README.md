@@ -5,3 +5,4 @@ To use it, a teacher would put the correct code in the left window, and the stud
 Using a LLM through OpenAI's API, the program compares the two, and then provides concise feedback that the teacher could give to the student.
 
 IMPORTANT: THIS WILL NOT WORK IF YOU DO NOT PUT IN YOUR OWN OPENAI API KEY.
+YOU ALSO NEED TO MAKE SURE BOTH INCLUDED DEPENDENCIES ARE INCLUDED IN THE PROJECT LIBRARY WHEN COMPILING.
