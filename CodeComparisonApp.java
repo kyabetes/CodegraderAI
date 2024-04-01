@@ -14,6 +14,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CodeComparisonApp extends JFrame implements ActionListener {
     private JTextArea correctCodeArea;
@@ -22,8 +26,10 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
     private JButton compareButton;
     private JButton saveButton;
 
+    private Map<String, String> comparisonCache = new HashMap<>();
+
     public CodeComparisonApp() {
-        setTitle("Code Comparison App");
+        setTitle("Codegrader AI");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -31,6 +37,8 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
         correctCodeArea = new JTextArea(10, 30);
         submittedCodeArea = new JTextArea(10, 30);
         feedbackArea = new JTextArea(10, 30);
+        feedbackArea.setLineWrap(true);
+        feedbackArea.setWrapStyleWord(true);
         feedbackArea.setEditable(false);
 
         // Create buttons
@@ -77,10 +85,19 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
     }
 
     private String compareCode(String correctCode, String submittedCode) {
-        String apiKey = "placeholder";
+
+        String cacheKey = correctCode + "|||" + submittedCode;
+        if (comparisonCache.containsKey(cacheKey)) {
+            return comparisonCache.get(cacheKey);
+        }
+
+        String apiKey = "";
         String apiUrl = "https://api.openai.com/v1/chat/completions";
 
-        String prompt = "Compare the following code files and provide suggestions for improvement:\n\n";
+        String prompt = "You are a program that analyzes student-submitted code and compares it to the teacher-submitted code, " +
+                "only giving suggestions based on the comparison between the student and teacher answers. " +
+                "Compare the following code files and provide suggestions for improvement, " +
+                "the first is correct and the second is the student-submitted one:\n\n";
         prompt += "Correct Code:\n" + correctCode + "\n\n";
         prompt += "Submitted Code:\n" + submittedCode + "\n\n";
         prompt += "Provide the suggestions in a clear and concise manner.";
@@ -105,17 +122,20 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
 
             if (response.statusCode() == 200) {
                 String content = extractContent(responseBody);
+
+                // Store the result in the cache before returning it
+                comparisonCache.put(cacheKey, content);
+
                 return content;
             } else {
                 System.out.println("Error Status Code: " + response.statusCode()); // Debugging statement
                 return "Error occurred while generating feedback. Status code: " + response.statusCode();
             }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            return "Error occurred while generating feedback.";
+            Logger.getLogger(CodeComparisonApp.class.getName()).log(Level.SEVERE, "Error occurred while generating feedback.", e);
+            return "Error occurred while generating feedback. Please check the logs for more details.";
         }
     }
-
     private String extractContent(String responseBody) {
         try {
             JSONObject jsonObject = new JSONObject(responseBody);
@@ -148,6 +168,14 @@ public class CodeComparisonApp extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
+
+        try {
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatDarkLaf");
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            Logger.getLogger(CodeComparisonApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        JFrame.setDefaultLookAndFeelDecorated(true);
+
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new CodeComparisonApp();
